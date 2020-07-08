@@ -1,8 +1,34 @@
 import React from 'react';
-import Dragula from 'dragula';
+import dragula from 'react-dragula';
 import 'dragula/dist/dragula.css';
 import Swimlane from './Swimlane';
 import './Board.css';
+
+let drake = dragula({
+  revertOnSpill: true
+})
+
+const swimlaneDragColumns = 
+document.getElementsByClassName('Swimlane-dragColumn')
+
+const indexToStatus = {
+  0: 'backlog',
+  1: 'in-progress',
+  2: 'complete'
+}
+
+drake.on("drop", (el, target, source) => {
+  if (target !== source) {
+    for (let i = 0; i < 3; i++){
+      if (target === swimlaneDragColumns[i]) {
+        console.log(el.setAttribute('data-status', indexToStatus[i.toString()]))
+        console.log('el stat: ' + el.getAttribute('data-status'))
+        console.log('target stat: ' + indexToStatus[i.toString()])
+        // el.updateStatus(indexToStatus[i.toString])
+      }
+    }
+  }
+})
 
 export default class Board extends React.Component {
   constructor(props) {
@@ -23,26 +49,26 @@ export default class Board extends React.Component {
   }
   getClients() {
     return [
-      ['1','Stark, White and Abbott','Cloned Optimal Architecture', 'in-progress'],
-      ['2','Wiza LLC','Exclusive Bandwidth-Monitored Implementation', 'complete'],
+      ['1','Stark, White and Abbott','Cloned Optimal Architecture', 'backlog'],
+      ['2','Wiza LLC','Exclusive Bandwidth-Monitored Implementation', 'backlog'],
       ['3','Nolan LLC','Vision-Oriented 4Thgeneration Graphicaluserinterface', 'backlog'],
-      ['4','Thompson PLC','Streamlined Regional Knowledgeuser', 'in-progress'],
-      ['5','Walker-Williamson','Team-Oriented 6Thgeneration Matrix', 'in-progress'],
+      ['4','Thompson PLC','Streamlined Regional Knowledgeuser', 'backlog'],
+      ['5','Walker-Williamson','Team-Oriented 6Thgeneration Matrix', 'backlog'],
       ['6','Boehm and Sons','Automated Systematic Paradigm', 'backlog'],
       ['7','Runolfsson, Hegmann and Block','Integrated Transitional Strategy', 'backlog'],
       ['8','Schumm-Labadie','Operative Heuristic Challenge', 'backlog'],
       ['9','Kohler Group','Re-Contextualized Multi-Tasking Attitude', 'backlog'],
       ['10','Romaguera Inc','Managed Foreground Toolset', 'backlog'],
-      ['11','Reilly-King','Future-Proofed Interactive Toolset', 'complete'],
+      ['11','Reilly-King','Future-Proofed Interactive Toolset', 'backlog'],
       ['12','Emard, Champlin and Runolfsdottir','Devolved Needs-Based Capability', 'backlog'],
-      ['13','Fritsch, Cronin and Wolff','Open-Source 3Rdgeneration Website', 'complete'],
+      ['13','Fritsch, Cronin and Wolff','Open-Source 3Rdgeneration Website', 'backlog'],
       ['14','Borer LLC','Profit-Focused Incremental Orchestration', 'backlog'],
-      ['15','Emmerich-Ankunding','User-Centric Stable Extranet', 'in-progress'],
-      ['16','Willms-Abbott','Progressive Bandwidth-Monitored Access', 'in-progress'],
-      ['17','Brekke PLC','Intuitive User-Facing Customerloyalty', 'complete'],
+      ['15','Emmerich-Ankunding','User-Centric Stable Extranet', 'backlog'],
+      ['16','Willms-Abbott','Progressive Bandwidth-Monitored Access', 'backlog'],
+      ['17','Brekke PLC','Intuitive User-Facing Customerloyalty', 'backlog'],
       ['18','Bins, Toy and Klocko','Integrated Assymetric Software', 'backlog'],
       ['19','Hodkiewicz-Hayes','Programmable Systematic Securedline', 'backlog'],
-      ['20','Murphy, Lang and Ferry','Organized Explicit Access', 'backlog'],
+      ['20','Murphy, Lang and Ferry','Organized Explicit Access', 'in-progress'],
     ].map(companyDetails => ({
       id: companyDetails[0],
       name: companyDetails[1],
@@ -50,29 +76,37 @@ export default class Board extends React.Component {
       status: companyDetails[3],
     }));
   }
-  renderSwimlane(name, clients, ref) {
+  renderSwimlane(name, clients, ref, containerID) {
     return (
-      <Swimlane name={name} clients={clients} dragulaRef={ref}/>
+      <Swimlane name={name} 
+                clients={clients} 
+                dragulaRef={ref} 
+                id={"Swimlane-" + containerID}/>
     );
   }
 
+
   render() {
+
     return (
       <div className="Board">
         <div className="container-fluid">
           <div className="row">
-            <div className="col-md-4">
-              {this.renderSwimlane('Backlog', this.state.clients.backlog, this.swimlanes.backlog)}
+            <div className="col-md-4" id="backlog">
+              {this.renderSwimlane('Backlog', this.state.clients.backlog, this.swimlanes.backlog=this.dragulaDecorator, 'backlog')}
             </div>
-            <div className="col-md-4">
-              {this.renderSwimlane('In Progress', this.state.clients.inProgress, this.swimlanes.inProgress)}
+            <div className="col-md-4" id="in-progress">
+              {this.renderSwimlane('In Progress', this.state.clients.inProgress, this.swimlanes.inProgress=this.dragulaDecorator, 'inProgress')}
             </div>
-            <div className="col-md-4">
-              {this.renderSwimlane('Complete', this.state.clients.complete, this.swimlanes.complete)}
+            <div className="col-md-4" id="complete">
+              {this.renderSwimlane('Complete', this.state.clients.complete, this.swimlanes.complete=this.dragulaDecorator, 'complete')}
             </div>
           </div>
         </div>
       </div>
     );
   }
+  dragulaDecorator = (componentBackingInstance) => {
+    drake.containers.push(componentBackingInstance);
+  };
 }
