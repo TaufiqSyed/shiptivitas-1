@@ -1,22 +1,8 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import Card from './Card';
 import './Swimlane.css';
 
 export default class Swimlane extends React.Component {
-  // constructor() {
-  //   super()
-  //   this.state = {
-  //     containerID: ""
-  //   }
-  // }
-
-  // componentDidMount() {
-  //   this.setState({
-  //     containerId: "Swimlane" + ReactDOM.findDOMNode(this).parentNode.getAttribute("id")
-  //   });
-  // }
-
   render() {
     const cards = this.props.clients.map(client => {
       return (

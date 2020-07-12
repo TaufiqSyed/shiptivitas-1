@@ -4,32 +4,6 @@ import 'dragula/dist/dragula.css';
 import Swimlane from './Swimlane';
 import './Board.css';
 
-let drake = dragula({
-  revertOnSpill: true
-})
-
-const swimlaneDragColumns = 
-document.getElementsByClassName('Swimlane-dragColumn')
-
-const indexToStatus = {
-  0: 'backlog',
-  1: 'in-progress',
-  2: 'complete'
-}
-
-drake.on("drop", (el, target, source) => {
-  if (target !== source) {
-    for (let i = 0; i < 3; i++){
-      if (target === swimlaneDragColumns[i]) {
-        console.log(el.setAttribute('data-status', indexToStatus[i.toString()]))
-        console.log('el stat: ' + el.getAttribute('data-status'))
-        console.log('target stat: ' + indexToStatus[i.toString()])
-        // el.updateStatus(indexToStatus[i.toString])
-      }
-    }
-  }
-})
-
 export default class Board extends React.Component {
   constructor(props) {
     super(props);
@@ -39,36 +13,45 @@ export default class Board extends React.Component {
         backlog: clients.filter(client => !client.status || client.status === 'backlog'),
         inProgress: clients.filter(client => client.status && client.status === 'in-progress'),
         complete: clients.filter(client => client.status && client.status === 'complete'),
-      }
+      },
+      drake: dragula({ revertOnSpill: true })
     }
+
+    this.state.drake.on("drop", (el, target, source) => {
+       this.handleDrop(el,target,source) 
+    })
+    
     this.swimlanes = {
       backlog: React.createRef(),
       inProgress: React.createRef(),
       complete: React.createRef(),
     }
+
+    this.handleDrop = this.handleDrop.bind(this)
+    // this.changeClientsState = this.changeClientsState.bind(this)
   }
   getClients() {
     return [
-      ['1','Stark, White and Abbott','Cloned Optimal Architecture', 'backlog'],
-      ['2','Wiza LLC','Exclusive Bandwidth-Monitored Implementation', 'backlog'],
-      ['3','Nolan LLC','Vision-Oriented 4Thgeneration Graphicaluserinterface', 'backlog'],
-      ['4','Thompson PLC','Streamlined Regional Knowledgeuser', 'backlog'],
-      ['5','Walker-Williamson','Team-Oriented 6Thgeneration Matrix', 'backlog'],
-      ['6','Boehm and Sons','Automated Systematic Paradigm', 'backlog'],
-      ['7','Runolfsson, Hegmann and Block','Integrated Transitional Strategy', 'backlog'],
-      ['8','Schumm-Labadie','Operative Heuristic Challenge', 'backlog'],
-      ['9','Kohler Group','Re-Contextualized Multi-Tasking Attitude', 'backlog'],
-      ['10','Romaguera Inc','Managed Foreground Toolset', 'backlog'],
-      ['11','Reilly-King','Future-Proofed Interactive Toolset', 'backlog'],
-      ['12','Emard, Champlin and Runolfsdottir','Devolved Needs-Based Capability', 'backlog'],
-      ['13','Fritsch, Cronin and Wolff','Open-Source 3Rdgeneration Website', 'backlog'],
-      ['14','Borer LLC','Profit-Focused Incremental Orchestration', 'backlog'],
-      ['15','Emmerich-Ankunding','User-Centric Stable Extranet', 'backlog'],
-      ['16','Willms-Abbott','Progressive Bandwidth-Monitored Access', 'backlog'],
-      ['17','Brekke PLC','Intuitive User-Facing Customerloyalty', 'backlog'],
-      ['18','Bins, Toy and Klocko','Integrated Assymetric Software', 'backlog'],
-      ['19','Hodkiewicz-Hayes','Programmable Systematic Securedline', 'backlog'],
-      ['20','Murphy, Lang and Ferry','Organized Explicit Access', 'in-progress'],
+      ['1','Stark, White and Abbott','Cloned Optimal Architecture', ''],
+      ['2','Wiza LLC','Exclusive Bandwidth-Monitored Implementation', ''],
+      ['3','Nolan LLC','Vision-Oriented 4Thgeneration Graphicaluserinterface', ''],
+      ['4','Thompson PLC','Streamlined Regional Knowledgeuser', ''],
+      ['5','Walker-Williamson','Team-Oriented 6Thgeneration Matrix', ''],
+      ['6','Boehm and Sons','Automated Systematic Paradigm', ''],
+      ['7','Runolfsson, Hegmann and Block','Integrated Transitional Strategy', ''],
+      ['8','Schumm-Labadie','Operative Heuristic Challenge', ''],
+      ['9','Kohler Group','Re-Contextualized Multi-Tasking Attitude', ''],
+      ['10','Romaguera Inc','Managed Foreground Toolset', ''],
+      ['11','Reilly-King','Future-Proofed Interactive Toolset', ''],
+      ['12','Emard, Champlin and Runolfsdottir','Devolved Needs-Based Capability', ''],
+      ['13','Fritsch, Cronin and Wolff','Open-Source 3Rdgeneration Website', ''],
+      ['14','Borer LLC','Profit-Focused Incremental Orchestration', ''],
+      ['15','Emmerich-Ankunding','User-Centric Stable Extranet', ''],
+      ['16','Willms-Abbott','Progressive Bandwidth-Monitored Access', ''],
+      ['17','Brekke PLC','Intuitive User-Facing Customerloyalty', ''],
+      ['18','Bins, Toy and Klocko','Integrated Assymetric Software', ''],
+      ['19','Hodkiewicz-Hayes','Programmable Systematic Securedline', ''],
+      ['20','Murphy, Lang and Ferry','Organized Explicit Access', ''],
     ].map(companyDetails => ({
       id: companyDetails[0],
       name: companyDetails[1],
@@ -76,6 +59,7 @@ export default class Board extends React.Component {
       status: companyDetails[3],
     }));
   }
+
   renderSwimlane(name, clients, ref, containerID) {
     return (
       <Swimlane name={name} 
@@ -85,9 +69,55 @@ export default class Board extends React.Component {
     );
   }
 
+  getTargetStatus(target) {
+    const swimlaneDragColumns = document.getElementsByClassName(
+      'Swimlane-dragColumn'
+    )
+    const indexToStatus = {
+      0: 'backlog',
+      1: 'in-progress',
+      2: 'complete'
+    }
+    for (let i = 0; i < 3; i++){
+      if (target === swimlaneDragColumns[i]) {
+        return indexToStatus[i.toString()]
+      }
+    }
+  }
+
+  handleDrop(el, target, source) {
+    if (target === source) {return}
+    let cardID = el.getAttribute("data-id")
+    const targetStatus = this.getTargetStatus(target)
+    let clients = this.getClients()
+    let prevClientStatus = el.getAttribute("data-status")
+    if (!prevClientStatus) {
+      prevClientStatus = 'backlog'
+    } else if (prevClientStatus === 'in-progress') {
+      prevClientStatus = 'inProgress'
+    }
+    for (let i = 0; i < clients.length; i++) {
+      if (cardID === clients[i].id) {
+        clients[i].status = targetStatus
+        let clientsState = {        
+          backlog: clients.filter(client => !client.status || client.status === 'backlog'),
+          inProgress: clients.filter(client => client.status && client.status === 'in-progress'),
+          complete: clients.filter(client => client.status && client.status === 'complete'),
+        }    
+        // broken function call to change state
+        // this.changeClientsState(clientsState)
+        break
+      }
+      }
+  }
+
+  // changeClientsState(clientsState){
+  //   this.setState({
+  //     clients: clientsState 
+  //   })
+  // }
 
   render() {
-
     return (
       <div className="Board">
         <div className="container-fluid">
@@ -107,6 +137,6 @@ export default class Board extends React.Component {
     );
   }
   dragulaDecorator = (componentBackingInstance) => {
-    drake.containers.push(componentBackingInstance);
+    this.state.drake.containers.push(componentBackingInstance);
   };
 }
