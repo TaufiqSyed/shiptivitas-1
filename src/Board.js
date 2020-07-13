@@ -3,6 +3,7 @@ import dragula from 'react-dragula';
 import 'dragula/dist/dragula.css';
 import Swimlane from './Swimlane';
 import './Board.css';
+// import { data } from 'jquery';
 
 export default class Board extends React.Component {
   constructor(props) {
@@ -18,7 +19,8 @@ export default class Board extends React.Component {
     }
 
     this.state.drake.on("drop", (el, target, source) => {
-       this.handleDrop(el,target,source) 
+      this.state.drake.cancel(true)
+      this.handleDrop(el,target,source) 
     })
     
     this.swimlanes = {
@@ -28,7 +30,7 @@ export default class Board extends React.Component {
     }
 
     this.handleDrop = this.handleDrop.bind(this)
-    // this.changeClientsState = this.changeClientsState.bind(this)
+    this.changeClientsState = this.changeClientsState.bind(this)
   }
   getClients() {
     return [
@@ -85,37 +87,44 @@ export default class Board extends React.Component {
     }
   }
 
-  handleDrop(el, target, source) {
-    if (target === source) {return}
-    let cardID = el.getAttribute("data-id")
-    const targetStatus = this.getTargetStatus(target)
-    let clients = this.getClients()
-    let prevClientStatus = el.getAttribute("data-status")
-    if (!prevClientStatus) {
-      prevClientStatus = 'backlog'
-    } else if (prevClientStatus === 'in-progress') {
-      prevClientStatus = 'inProgress'
+  statusToAttribute(dataStatus){
+    if (!dataStatus) {
+      return ('backlog')
+    } else if (dataStatus === 'in-progress') {
+      return ('inProgress')
+    } else {
+      return ('complete')
     }
-    for (let i = 0; i < clients.length; i++) {
-      if (cardID === clients[i].id) {
-        clients[i].status = targetStatus
-        let clientsState = {        
-          backlog: clients.filter(client => !client.status || client.status === 'backlog'),
-          inProgress: clients.filter(client => client.status && client.status === 'in-progress'),
-          complete: clients.filter(client => client.status && client.status === 'complete'),
-        }    
-        // broken function call to change state
-        // this.changeClientsState(clientsState)
-        break
-      }
-      }
   }
 
-  // changeClientsState(clientsState){
-  //   this.setState({
-  //     clients: clientsState 
-  //   })
-  // }
+  handleDrop(el, target, source) {
+    if (target === source) {return}
+    const cardID = el.getAttribute("data-id")
+    const targetStatus = this.getTargetStatus(target)
+    let clientsList = this.state.clients.backlog.concat(
+      this.state.clients.inProgress, 
+      this.state.clients.complete
+    )
+    clientsList = clientsList.filter(function(client){ return client !== undefined })
+    for (let i = 0; i < clientsList.length; i++) {
+      if (cardID === clientsList[i].id) {
+        clientsList[i].status = targetStatus
+        const clientsState = {
+          backlog: clientsList.filter(client => !client.status || client.status === 'backlog'),
+          inProgress: clientsList.filter(client => client.status && client.status === 'in-progress'),
+          complete: clientsList.filter(client => client.status && client.status === 'complete'),
+        }
+        this.changeClientsState(clientsState)
+      }
+    }
+
+  }
+
+  changeClientsState(clientsState){
+    this.setState({
+      clients: clientsState
+    })
+  }
 
   render() {
     return (
