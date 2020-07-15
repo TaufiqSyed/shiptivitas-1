@@ -13,12 +13,11 @@ export default class Board extends React.Component {
         backlog: clients.filter(client => !client.status || client.status === 'backlog'),
         inProgress: clients.filter(client => client.status && client.status === 'in-progress'),
         complete: clients.filter(client => client.status && client.status === 'complete'),
-      },
-      drake: dragula({ revertOnSpill: true })
+      }
     };
-
-    this.state.drake.on("drop", (el, target, source) => {
-      if (target !== source) { this.state.drake.cancel(true) }
+    this.drake = dragula()
+    this.drake.on("drop", (el, target, source) => {
+      if (target !== source) { this.drake.cancel(true) }
       this.handleDrop(el, target, source)
     });
 
@@ -134,6 +133,6 @@ export default class Board extends React.Component {
     );
   };
   dragulaDecorator = (componentBackingInstance) => {
-    this.state.drake.containers.push(componentBackingInstance);
+    this.drake.containers.push(componentBackingInstance);
   };
 }
