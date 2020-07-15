@@ -22,8 +22,6 @@ function Swimlane(props) {
       </div>
     </div>
   );
+};
 
-
-}
-
-export default Swimlane
+export default Swimlane;

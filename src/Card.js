@@ -15,6 +15,6 @@ function Card(props) {
       <div className="Card-title">{props.name}</div>
     </div>
   );
-}
+};
 
-export default Card
+export default Card;
