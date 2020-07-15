@@ -17,8 +17,10 @@ export default class Board extends React.Component {
     };
     this.drake = dragula()
     this.drake.on("drop", (el, target, source) => {
-      if (target !== source) { this.drake.cancel(true) }
-      this.handleDrop(el, target, source)
+      if (target !== source) {
+        this.drake.cancel(true)
+        this.handleDrop(el, target)
+      }
     });
 
     this.swimlanes = {
@@ -27,7 +29,7 @@ export default class Board extends React.Component {
       complete: React.createRef(),
     };
 
-    this.changeClientsState = this.changeClientsState.bind(this);
+    this.handleDrop = this.handleDrop.bind(this)
   }
   getClients() {
     return [
@@ -59,7 +61,7 @@ export default class Board extends React.Component {
     }));
   }
 
-  renderSwimlane(name, clients, ref, containerID) {
+  renderSwimlane(name, clients, ref) {
     return (
       <Swimlane
         name={name}
@@ -70,9 +72,7 @@ export default class Board extends React.Component {
   }
 
   getTargetStatus(target) {
-    const swimlaneDragColumns = document.getElementsByClassName(
-      'Swimlane-dragColumn'
-    )
+    const swimlaneDragColumns = document.getElementsByClassName('Swimlane-dragColumn')
     const indexToStatus = {
       0: 'backlog',
       1: 'in-progress',
@@ -80,20 +80,19 @@ export default class Board extends React.Component {
     }
     for (let i = 0; i < 3; i++) {
       if (target === swimlaneDragColumns[i]) {
-        return indexToStatus[i.toString()]
+        return indexToStatus[i]
       }
     }
   }
 
-  handleDrop(el, target, source) {
-    if (target === source) { return }
+  handleDrop(el, target) {
     const cardID = el.getAttribute("data-id")
     const targetStatus = this.getTargetStatus(target)
     let clientsList = this.state.clients.backlog.concat(
       this.state.clients.inProgress,
       this.state.clients.complete
-    );
-    clientsList = clientsList.filter(function (client) { return client !== undefined })
+    ).filter( client => client !== undefined )
+
     for (let i = 0; i < clientsList.length; i++) {
       if (cardID === clientsList[i].id) {
         clientsList[i].status = targetStatus
@@ -102,15 +101,10 @@ export default class Board extends React.Component {
           inProgress: clientsList.filter(client => client.status && client.status === 'in-progress'),
           complete: clientsList.filter(client => client.status && client.status === 'complete'),
         };
-        this.changeClientsState(clientsState);
+        this.setState({ clients: clientsState })
+        break
       };
     };
-  };
-
-  changeClientsState(clientsState) {
-    this.setState({
-      clients: clientsState
-    });
   };
 
   render() {
